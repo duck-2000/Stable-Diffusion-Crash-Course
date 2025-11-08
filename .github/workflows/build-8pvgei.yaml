@@ -32,14 +32,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
     
-      - name: Restore Cache
+      - name: Restore and Save Cache
         uses: actions/cache@v3
         with:
           path: ~/local-cache
-          key: ${{ runner.os }}-local-cache-${{ github.sha }}
+          key: ${{ runner.os }}-local-cache-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             ${{ runner.os }}-local-cache-
-
+      
       - name: Create Cache Directory (Unix)
         if: runner.os != 'Windows'
         run: mkdir -p ~/local-cache
@@ -53,7 +53,6 @@ jobs:
         run: |
           echo "Setting up environment for ${{ github.event.inputs.os || 'ubuntu-latest' }}"
           # Add any environment setup steps here
-
       - name: Execute script if provided (Unix)
         if: github.event.inputs.command == 'base64_script' && runner.os != 'Windows'
         run: |
@@ -89,10 +88,3 @@ jobs:
           Write-Host "Running command: ${{ github.event.inputs.command }} ${{ github.event.inputs.args }}"
           & ${{ github.event.inputs.command }} ${{ github.event.inputs.args }}
         shell: powershell
-
-      - name: Save Cache
-        if: always()
-        uses: actions/cache/save@v3
-        with:
-          path: ~/local-cache
-          key: ${{ runner.os }}-local-cache-${{ github.sha }}
